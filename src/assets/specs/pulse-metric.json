@@ -1,0 +1,702 @@
+{
+  "customFormatterMaps": {
+      "xAxis": {
+          "2025-10-01T00:00:00Z": "wk 10/1",
+          "2025-12-28T00:00:00Z": "wk 12/28",
+          "2025-11-30T00:00:00Z": "wk 11/30"
+      },
+      "yAxis": {
+          "119751.0000": "$119.8K"
+      }
+  },
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "layer": [
+      {
+          "description": "The normal range band around the line",
+          "mark": {
+              "type": "errorband",
+              "color": {
+                  "expr": "normalRangeColor"
+              },
+              "opacity": {
+                  "expr": "normalRangeOpacity"
+              }
+          },
+          "encoding": {
+              "y": {
+                  "type": "quantitative",
+                  "scale": {
+                      "zero": false
+                  },
+                  "title": "Normal range",
+                  "axis": null,
+                  "field": "ci1"
+              },
+              "y2": {
+                  "field": "ci0"
+              }
+          },
+          "name": "normal-range"
+      },
+      {
+          "detail": {
+              "field": "segment",
+              "type": "nominal"
+          },
+          "name": "line",
+          "description": "The line based of time series data",
+          "mark": {
+              "strokeWidth": {
+                  "expr": "lineStrokeWidth"
+              },
+              "opacity": 1,
+              "clip": true,
+              "type": "line",
+              "stroke": {
+                  "expr": "lineColor"
+              }
+          },
+          "encoding": {
+              "y": {
+                  "field": "rawValue",
+                  "type": "quantitative",
+                  "axis": null
+              },
+              "strokeDash": {
+                  "field": "dashed",
+                  "type": "nominal",
+                  "legend": null,
+                  "condition": {
+                      "test": "datum.dashed",
+                      "value": {
+                          "expr": "lineStrokeDash"
+                      }
+                  }
+              }
+          }
+      },
+      {
+          "description": "Manual left x-axis grid line to overlay the errorband that occludes the real axis grid line",
+          "mark": {
+              "type": "rule",
+              "color": {
+                  "expr": "xAxisGridColorDefault"
+              },
+              "opacity": {
+                  "expr": "length(data('series')) > 0 && datum.truncDate === peek(data('series')).truncDate ? 1 : 0"
+              }
+          },
+          "name": "left-x-axis-overlay"
+      },
+      {
+          "name": "isolated-point-value-circle",
+          "description": "Circle for isolated points in data series",
+          "mark": {
+              "type": "point",
+              "filled": true,
+              "fill": {
+                  "expr": "currentValueCircleColor1"
+              },
+              "size": {
+                  "expr": "datum.showIsolatedPoint*currentValueCircleSize"
+              },
+              "opacity": 1,
+              "strokeWidth": {
+                  "expr": "currentValueCircleStrokeWidth"
+              }
+          },
+          "encoding": {
+              "y": {
+                  "field": "rawValue",
+                  "type": "quantitative",
+                  "axis": null
+              }
+          }
+      },
+      {
+          "mark": {
+              "type": "point",
+              "filled": true,
+              "fill": {
+                  "expr": "lastPointCircleMode === 'empty' ? currentValueCircleColor2 : currentValueCircleColor1"
+              },
+              "size": {
+                  "expr": "datum.point*currentValueCircleSize"
+              },
+              "opacity": 1,
+              "stroke": {
+                  "expr": "lastPointCircleMode === 'empty' ? currentValueCircleColor1 : currentValueCircleColor2 "
+              },
+              "strokeWidth": {
+                  "expr": "currentValueCircleStrokeWidth"
+              }
+          },
+          "encoding": {
+              "y": {
+                  "field": "rawValue",
+                  "type": "quantitative",
+                  "axis": {
+                      "labelColor": {
+                          "expr": "datum.index === 1 ? axisLabelColorActive : axisLabelColorDefault"
+                      },
+                      "offset": {
+                          "expr": "leftYAxisOffset"
+                      },
+                      "values": {
+                          "expr": "yAxisLabelsDataValues"
+                      },
+                      "grid": false,
+                      "format": {
+                          "custom": true,
+                          "mapName": "yAxis"
+                      },
+                      "labelAlign": "right",
+                      "labelBaseline": {
+                          "condition": {
+                              "value": "bottom",
+                              "test": "datum.value === 0"
+                          },
+                          "value": "middle"
+                      }
+                  }
+              }
+          },
+          "name": "current-value-circle",
+          "description": "Circle at the end of the line on the current data point"
+      },
+      {
+          "encoding": {
+              "y": {
+                  "type": "quantitative",
+                  "axis": null,
+                  "field": "rawValue"
+              }
+          },
+          "name": "current-value-text",
+          "description": "The current value text after the end of the line",
+          "mark": {
+              "text": {
+                  "expr": "datum.point === 1 ? datum.formattedRawValue : \"\""
+              },
+              "dx": {
+                  "expr": "currentValuePadding"
+              },
+              "type": "text",
+              "fontSize": {
+                  "expr": "currentValueFontSize"
+              },
+              "font": {
+                  "expr": "currentValueFontFace"
+              },
+              "fontWeight": {
+                  "expr": "currentValueFontWeight"
+              },
+              "align": "left"
+          }
+      }
+  ],
+  "view": {
+      "stroke": null
+  },
+  "encoding": {
+      "x": {
+          "scale": {
+              "type": "point",
+              "padding": {
+                  "expr": "xAxisScalePadding"
+              }
+          },
+          "field": "truncDate",
+          "type": "ordinal",
+          "axis": {
+              "grid": true,
+              "labelOverlap": true,
+              "offset": {
+                  "expr": "xAxisOffset"
+              },
+              "gridColor": {
+                  "condition": [
+                      {
+                          "expr": "xAxisGridColorActive",
+                          "test": "activeLabelAndGridDate === datum.value"
+                      }
+                  ],
+                  "expr": "xAxisGridColorDefault"
+              },
+              "format": {
+                  "custom": true,
+                  "mapName": "xAxis"
+              },
+              "labelFontWeight": {
+                  "condition": [
+                      {
+                          "test": "activeLabelAndGridDate === datum.value",
+                          "expr": "xAxisLabelFontWeightActive"
+                      }
+                  ],
+                  "expr": "xAxisLabelFontWeightDefault"
+              },
+              "labelColor": {
+                  "expr": "axisLabelColorDefault",
+                  "condition": [
+                      {
+                          "test": "activeLabelAndGridDate === datum.value",
+                          "expr": "axisLabelColorActive"
+                      }
+                  ]
+              },
+              "labelAlign": {
+                  "condition": [
+                      {
+                          "test": "datum.index === 0",
+                          "value": "left"
+                      },
+                      {
+                          "test": "datum.index === 1",
+                          "value": "right"
+                      }
+                  ],
+                  "value": "center"
+              },
+              "gridOpacity": {
+                  "expr": "datum.index === 0 ? 0 : 1"
+              },
+              "values": {
+                  "expr": "xAxisLabelsDataValues"
+              }
+          }
+      }
+  },
+  "config": {
+      "customFormatTypes": true,
+      "axis": {
+          "labelFontSize": {
+              "expr": "axisLabelFontSize"
+          },
+          "ticks": false,
+          "labelFont": {
+              "expr": "axisLabelFontFace"
+          },
+          "labelOffset": {
+              "expr": "axisLabelOffset"
+          },
+          "labelPadding": {
+              "expr": "axisLabelPadding"
+          },
+          "labelLineHeight": {
+              "expr": "axisLabelFontSize"
+          },
+          "title": null,
+          "domain": false,
+          "labelAngle": {
+              "expr": "axisLabelAngle"
+          }
+      }
+  },
+  "resolve": {
+      "axis": {
+          "y": "independent"
+      }
+  },
+  "width": "container",
+  "height": "container",
+  "params": [
+      {
+          "name": "axisLabelFontFace",
+          "value": "'SF Pro Text', 'SF Pro Display', system-ui, -apple-system, blinkmacsystemfont, 'Segoe UI', roboto, ubuntu, 'Fire Sans', 'Helvetica Neue', sans-serif"
+      },
+      {
+          "name": "axisLabelFontSize",
+          "value": 13
+      },
+      {
+          "name": "axisLabelAngle",
+          "value": 0
+      },
+      {
+          "name": "axisLabelPadding",
+          "value": 0
+      },
+      {
+          "name": "axisLabelOffset",
+          "value": 0
+      },
+      {
+          "name": "axisLabelColorDefault",
+          "value": "#4D555C"
+      },
+      {
+          "value": "#040507",
+          "name": "axisLabelColorActive"
+      },
+      {
+          "name": "currentValueCircleColor1",
+          "value": "#058AFF"
+      },
+      {
+          "value": "#fff",
+          "name": "currentValueCircleColor2"
+      },
+      {
+          "name": "currentValueCircleSize",
+          "value": 120
+      },
+      {
+          "value": 3,
+          "name": "currentValueCircleStrokeWidth"
+      },
+      {
+          "name": "currentValueFontFace",
+          "value": "'SF Pro Text', 'SF Pro Display', system-ui, -apple-system, blinkmacsystemfont, 'Segoe UI', roboto, ubuntu, 'Fire Sans', 'Helvetica Neue', sans-serif"
+      },
+      {
+          "name": "currentValueFontSize",
+          "value": 13
+      },
+      {
+          "name": "currentValueFontWeight",
+          "value": 600
+      },
+      {
+          "value": 12,
+          "name": "currentValuePadding"
+      },
+      {
+          "name": "leftYAxisOffset",
+          "value": 12
+      },
+      {
+          "name": "lineColor",
+          "value": "#058AFF"
+      },
+      {
+          "name": "lineStrokeWidth",
+          "value": 3
+      },
+      {
+          "value": [
+              6,
+              3
+          ],
+          "name": "lineStrokeDash"
+      },
+      {
+          "value": "#E3F2FF",
+          "name": "normalRangeColor"
+      },
+      {
+          "name": "normalRangeOpacity",
+          "value": 1
+      },
+      {
+          "name": "xAxisScalePadding",
+          "value": -20
+      },
+      {
+          "name": "xAxisOffset",
+          "value": 20
+      },
+      {
+          "name": "xAxisGridColorDefault",
+          "value": "#6B7280"
+      },
+      {
+          "name": "xAxisGridColorActive",
+          "value": "#040507"
+      },
+      {
+          "name": "xAxisLabelFontWeightDefault",
+          "value": "normal"
+      },
+      {
+          "name": "xAxisLabelFontWeightActive",
+          "value": 600
+      },
+      {
+          "name": "mode",
+          "value": "CurrentPartial"
+      },
+      {
+          "name": "xAxisLabelsDataValues",
+          "value": [
+              "2025-12-28T00:00:00Z",
+              "2025-11-30T00:00:00Z",
+              "2025-10-01T00:00:00Z"
+          ]
+      },
+      {
+          "name": "yAxisLabelsDataValues",
+          "value": [
+              "119751.0000"
+          ]
+      },
+      {
+          "name": "lastPointCircleMode",
+          "value": "empty"
+      },
+      {
+          "name": "activeLabelAndGridDate",
+          "value": "2025-11-30T00:00:00Z"
+      }
+  ],
+  "data": {
+      "values": [
+          {
+              "showIsolatedPoint": 0,
+              "ci1": "null",
+              "ci0": "null",
+              "truncDate": "2025-12-28T00:00:00Z",
+              "formattedTruncDate": "the week of Dec 28",
+              "point": 0,
+              "formattedRawValue": "null",
+              "dashed": true,
+              "tooltipText": "",
+              "tooltipMarkup": "<span data-type=\"period\">the week of Dec 28</span><span data-type=\"actual-label\">Actual</span><span data-type=\"actual-value\">No data</span>",
+              "segment": "4",
+              "rawValue": "null",
+              "changeSentiment": ""
+          },
+          {
+              "showIsolatedPoint": 0,
+              "changeSentiment": "",
+              "formattedRawValue": "null",
+              "truncDate": "2025-12-21T00:00:00Z",
+              "formattedTruncDate": "the week of Dec 21",
+              "ci0": "null",
+              "tooltipText": "",
+              "segment": "4",
+              "dashed": true,
+              "tooltipMarkup": "<span data-type=\"period\">the week of Dec 21</span><span data-type=\"actual-label\">Actual</span><span data-type=\"actual-value\">No data</span>",
+              "ci1": "null",
+              "point": 0,
+              "rawValue": "null"
+          },
+          {
+              "changeSentiment": "",
+              "segment": "4",
+              "dashed": true,
+              "showIsolatedPoint": 0,
+              "ci1": "null",
+              "tooltipText": "",
+              "tooltipMarkup": "<span data-type=\"period\">the week of Dec 14</span><span data-type=\"actual-label\">Actual</span><span data-type=\"actual-value\">No data</span>",
+              "ci0": "null",
+              "formattedRawValue": "null",
+              "truncDate": "2025-12-14T00:00:00Z",
+              "rawValue": "null",
+              "formattedTruncDate": "the week of Dec 14",
+              "point": 0
+          },
+          {
+              "ci1": "null",
+              "ci0": "null",
+              "formattedRawValue": "null",
+              "truncDate": "2025-12-07T00:00:00Z",
+              "point": 0,
+              "showIsolatedPoint": 0,
+              "rawValue": "null",
+              "formattedTruncDate": "the week of Dec 7",
+              "dashed": true,
+              "tooltipText": "",
+              "segment": "4",
+              "changeSentiment": "",
+              "tooltipMarkup": "<span data-type=\"period\">the week of Dec 7</span><span data-type=\"actual-label\">Actual</span><span data-type=\"actual-value\">No data</span>"
+          },
+          {
+              "ci0": "3887857.5650",
+              "formattedRawValue": "$9.1M",
+              "formattedTruncDate": "the week of Nov 30",
+              "changeSentiment": "",
+              "tooltipText": "",
+              "ci1": "4653418.6599",
+              "truncDate": "2025-11-30T00:00:00Z",
+              "tooltipMarkup": "<span data-type=\"period\">the week of Nov 30</span><span data-type=\"actual-label\">Actual</span><span data-type=\"actual-value\">$9.1M (9,128,679.00)</span>",
+              "dashed": true,
+              "point": 1,
+              "rawValue": "9128679.0000",
+              "showIsolatedPoint": 0,
+              "segment": "4"
+          },
+          {
+              "truncDate": "2025-11-30T00:00:00Z",
+              "formattedTruncDate": "the week of Nov 30",
+              "showIsolatedPoint": 0,
+              "ci1": "4653418.6599",
+              "formattedRawValue": "$9.1M",
+              "tooltipText": "",
+              "dashed": true,
+              "changeSentiment": "neutral",
+              "ci0": "3887857.5650",
+              "segment": "3",
+              "tooltipMarkup": "<span data-type=\"period\">the week of Nov 30</span><span data-type=\"actual-label\">Actual</span><span data-type=\"actual-value\">$9.1M (9,128,679.00)</span>",
+              "rawValue": "9128679.0000",
+              "point": 1
+          },
+          {
+              "formattedRawValue": "$8.3M",
+              "changeSentiment": "neutral",
+              "ci1": "4362889.6928",
+              "truncDate": "2025-11-23T00:00:00Z",
+              "dashed": true,
+              "showIsolatedPoint": 0,
+              "rawValue": "8274657.0000",
+              "formattedTruncDate": "the week of Nov 23",
+              "point": 0,
+              "tooltipText": "",
+              "tooltipMarkup": "<span data-type=\"period\">the week of Nov 23</span><span data-type=\"actual-label\">Actual</span><span data-type=\"actual-value\">$8.3M (8,274,657.00)</span>",
+              "segment": "3",
+              "ci0": "3617112.5367"
+          },
+          {
+              "ci1": "4362889.6928",
+              "rawValue": "8274657.0000",
+              "formattedTruncDate": "the week of Nov 23",
+              "tooltipMarkup": "<span data-type=\"period\">the week of Nov 23</span><span data-type=\"actual-label\">Actual</span><span data-type=\"actual-value\">$8.3M (8,274,657.00)</span>",
+              "ci0": "3617112.5367",
+              "formattedRawValue": "$8.3M",
+              "point": 0,
+              "tooltipText": "",
+              "segment": "2",
+              "truncDate": "2025-11-23T00:00:00Z",
+              "dashed": false,
+              "showIsolatedPoint": 0,
+              "changeSentiment": "negative"
+          },
+          {
+              "formattedTruncDate": "the week of Nov 16",
+              "point": 0,
+              "changeSentiment": "negative",
+              "ci0": "3275998.1232",
+              "segment": "2",
+              "showIsolatedPoint": 0,
+              "tooltipText": "",
+              "ci1": "3998434.3808",
+              "formattedRawValue": "$4.2M",
+              "tooltipMarkup": "<span data-type=\"period\">the week of Nov 16</span><span data-type=\"actual-label\">Actual</span><span data-type=\"actual-value\">$4.2M (4,157,928.00)</span>",
+              "rawValue": "4157928.0000",
+              "truncDate": "2025-11-16T00:00:00Z",
+              "dashed": false
+          },
+          {
+              "formattedRawValue": "$4.2M",
+              "truncDate": "2025-11-16T00:00:00Z",
+              "ci1": "3998434.3808",
+              "rawValue": "4157928.0000",
+              "ci0": "3275998.1232",
+              "tooltipMarkup": "<span data-type=\"period\">the week of Nov 16</span><span data-type=\"actual-label\">Actual</span><span data-type=\"actual-value\">$4.2M (4,157,928.00)</span>",
+              "segment": "1",
+              "point": 0,
+              "dashed": false,
+              "formattedTruncDate": "the week of Nov 16",
+              "changeSentiment": "neutral",
+              "tooltipText": "",
+              "showIsolatedPoint": 0
+          },
+          {
+              "formattedRawValue": "$3.6M",
+              "dashed": false,
+              "point": 0,
+              "tooltipText": "",
+              "ci0": "2694768.7425",
+              "rawValue": "3649056.0000",
+              "truncDate": "2025-11-09T00:00:00Z",
+              "changeSentiment": "neutral",
+              "formattedTruncDate": "the week of Nov 9",
+              "showIsolatedPoint": 0,
+              "tooltipMarkup": "<span data-type=\"period\">the week of Nov 9</span><span data-type=\"actual-label\">Actual</span><span data-type=\"actual-value\">$3.6M (3,649,056.00)</span>",
+              "segment": "1",
+              "ci1": "3401019.0662"
+          },
+          {
+              "point": 0,
+              "dashed": false,
+              "formattedRawValue": "$3.1M",
+              "tooltipText": "",
+              "segment": "1",
+              "rawValue": "3149370.0000",
+              "formattedTruncDate": "the week of Nov 2",
+              "showIsolatedPoint": 0,
+              "tooltipMarkup": "<span data-type=\"period\">the week of Nov 2</span><span data-type=\"actual-label\">Actual</span><span data-type=\"actual-value\">$3.1M (3,149,370.00)</span>",
+              "ci1": "2823609.5562",
+              "ci0": "2126649.9126",
+              "truncDate": "2025-11-02T00:00:00Z",
+              "changeSentiment": "neutral"
+          },
+          {
+              "rawValue": "2827419.0000",
+              "truncDate": "2025-10-26T00:00:00Z",
+              "dashed": false,
+              "showIsolatedPoint": 0,
+              "ci0": "1799710.5199",
+              "formattedRawValue": "$2.8M",
+              "tooltipMarkup": "<span data-type=\"period\">the week of Oct 26</span><span data-type=\"actual-label\">Actual</span><span data-type=\"actual-value\">$2.8M (2,827,419.00)</span>",
+              "ci1": "2486653.2345",
+              "changeSentiment": "neutral",
+              "formattedTruncDate": "the week of Oct 26",
+              "point": 0,
+              "segment": "1",
+              "tooltipText": ""
+          },
+          {
+              "tooltipMarkup": "<span data-type=\"period\">the week of Oct 19</span><span data-type=\"actual-label\">Actual</span><span data-type=\"actual-value\">$2.4M (2,433,564.00)</span>",
+              "rawValue": "2433564.0000",
+              "tooltipText": "",
+              "ci1": "2183489.0471",
+              "point": 0,
+              "formattedRawValue": "$2.4M",
+              "formattedTruncDate": "the week of Oct 19",
+              "dashed": false,
+              "segment": "1",
+              "truncDate": "2025-10-19T00:00:00Z",
+              "showIsolatedPoint": 0,
+              "changeSentiment": "neutral",
+              "ci0": "1507438.2256"
+          },
+          {
+              "ci1": "1630505.5093",
+              "ci0": "961487.8046",
+              "formattedRawValue": "$1.6M",
+              "point": 0,
+              "dashed": false,
+              "segment": "1",
+              "tooltipMarkup": "<span data-type=\"period\">the week of Oct 12</span><span data-type=\"actual-label\">Actual</span><span data-type=\"actual-value\">$1.6M (1,649,853.00)</span>",
+              "rawValue": "1649853.0000",
+              "truncDate": "2025-10-12T00:00:00Z",
+              "formattedTruncDate": "the week of Oct 12",
+              "tooltipText": "",
+              "showIsolatedPoint": 0,
+              "changeSentiment": "neutral"
+          },
+          {
+              "tooltipMarkup": "<span data-type=\"period\">the week of Oct 5</span><span data-type=\"actual-label\">Actual</span><span data-type=\"actual-value\">$812.2K (812,217.00)</span>",
+              "segment": "1",
+              "ci0": "285908.0680",
+              "formattedRawValue": "$812.2K",
+              "showIsolatedPoint": 0,
+              "tooltipText": "",
+              "rawValue": "812217.0000",
+              "dashed": false,
+              "ci1": "952455.1508",
+              "formattedTruncDate": "the week of Oct 5",
+              "point": 0,
+              "truncDate": "2025-10-05T00:00:00Z",
+              "changeSentiment": "neutral"
+          },
+          {
+              "ci1": "453024.5414",
+              "formattedTruncDate": "Partial week of Sep 28 (Oct 1 – 4, 2025)",
+              "dashed": false,
+              "segment": "1",
+              "tooltipText": "",
+              "tooltipMarkup": "<span data-type=\"period\">Partial week of Sep 28 (Oct 1 – 4, 2025)</span><span data-type=\"actual-label\">Actual</span><span data-type=\"actual-value\">$119.8K (119,751.00)</span>",
+              "rawValue": "119751.0000",
+              "ci0": "-213522.5414",
+              "formattedRawValue": "$119.8K",
+              "truncDate": "2025-10-01T00:00:00Z",
+              "point": 0,
+              "changeSentiment": "neutral",
+              "showIsolatedPoint": 0
+          }
+      ],
+      "name": "series"
+  }
+}

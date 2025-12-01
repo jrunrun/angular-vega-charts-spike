@@ -1,0 +1,20 @@
+<div class="pulse-metric-chart-wrapper">
+  <div class="chart-controls">
+    <button 
+      (click)="downloadSvg()" 
+      [disabled]="!spec || loading"
+      class="download-button">
+      Download SVG
+    </button>
+  </div>
+
+  <div class="chart-container">
+    <div *ngIf="loading" class="loading-message">Loading chart...</div>
+    <div *ngIf="error" class="error-message">{{ error }}</div>
+    <app-vega-chart 
+      *ngIf="spec && !loading && !error" 
+      [spec]="spec">
+    </app-vega-chart>
+  </div>
+</div>
+
