@@ -1,5 +1,7 @@
 import { Component, Input, AfterViewInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import embed, { EmbedOptions, VisualizationSpec, Result } from 'vega-embed';
+import { applyFormatConfig } from '../utils/vega-utils';
+import * as vega from 'vega';
 
 @Component({
   selector: 'app-vega-chart',
@@ -33,9 +35,15 @@ export class VegaChartComponent implements AfterViewInit, OnDestroy {
 
   private async renderChart(): Promise<void> {
     try {
-      const defaultOptions: EmbedOptions = {
+      // Clone spec to avoid side effects and apply custom formatting
+      const spec = JSON.parse(JSON.stringify(this.spec));
+      applyFormatConfig(spec);
+
+      // Use 'any' to allow passing the 'vega' property which might not be in the EmbedOptions type definition
+      const defaultOptions: any = {
         renderer: 'svg',
-        actions: false
+        actions: false,
+        vega // Pass the vega instance where custom formatters are registered
       };
 
       const mergedOptions: EmbedOptions = {
@@ -45,7 +53,7 @@ export class VegaChartComponent implements AfterViewInit, OnDestroy {
 
       this.embedResult = await embed(
         this.chartContainer.nativeElement,
-        this.spec,
+        spec,
         mergedOptions
       );
     } catch (error) {
@@ -53,4 +61,3 @@ export class VegaChartComponent implements AfterViewInit, OnDestroy {
     }
   }
 }
-

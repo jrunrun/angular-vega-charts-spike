@@ -10,8 +10,12 @@ import { VisualizationSpec } from 'vega-embed';
  */
 export async function compileToSvg(spec: VisualizationSpec | any): Promise<string> {
   try {
+    // Clone spec to avoid side effects and apply custom formatting
+    const clonedSpec = JSON.parse(JSON.stringify(spec));
+    applyFormatConfig(clonedSpec);
+
     // Compile Vega-Lite spec to Vega spec
-    const compiled = vegaLite.compile(spec).spec;
+    const compiled = vegaLite.compile(clonedSpec).spec;
     
     // Parse the compiled Vega spec into a runtime specification
     const runtime = vega.parse(compiled);
@@ -67,3 +71,40 @@ export function downloadSvgFile(svgString: string, filename: string = 'chart.svg
   }
 }
 
+// Generate expression function name
+// NOTE: Must start with letter and only contain alphanumeric characters
+const generateExpressionFunctionName = () => `chart${Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)}`;
+
+// Register vega-lite custom formatter functions using customFormatterMaps on spec
+const registerCustomFormatters = (vizId: string, customFormatterMaps: any) => {
+  vega.expressionFunction(vizId, (datum: any, formatterName: string) => {
+    const valueMap = customFormatterMaps[formatterName];
+    if (!valueMap) {
+      console.warn(`Unable to find custom formatter map for: '${formatterName}'`);
+      return datum;
+    }
+    return valueMap[datum] || datum;
+  });
+}
+
+function _applyFormatConfig(obj: any, formatterFunctionName: string) {
+  for (const k in obj) {
+    if (typeof obj[k] === 'object' && obj[k] !== null) {
+      if (k === 'format' && 'custom' in obj[k]) {
+        const { mapName } = obj[k];
+        obj.format = mapName;
+        obj.formatType = formatterFunctionName;
+      }
+      _applyFormatConfig(obj[k], formatterFunctionName);
+    }
+  }
+}
+
+export const applyFormatConfig = (spec: any) => {
+  const { customFormatterMaps } = spec;
+  if (!customFormatterMaps) { return; }
+
+  const functionName = generateExpressionFunctionName();
+  registerCustomFormatters(functionName, customFormatterMaps);
+  _applyFormatConfig(spec, functionName);
+}
