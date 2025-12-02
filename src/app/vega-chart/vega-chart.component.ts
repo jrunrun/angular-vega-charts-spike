@@ -51,8 +51,10 @@ export class VegaChartComponent implements AfterViewInit, OnDestroy {
             const date = value['Date'] || '';
             const val = value['Value'] || '';
             return `
-              <span data-type="period">${date}</span>
-              <span data-type="actual-value">${val}</span>
+              <div style="display: flex; flex-direction: column;">
+                <span data-type="period">${date}</span>
+                <span data-type="actual-value">${val}</span>
+              </div>
             `;
           }
         }
