@@ -46,7 +46,15 @@ export class VegaChartComponent implements AfterViewInit, OnDestroy {
         vega, // Pass the vega instance where custom formatters are registered
         tooltip: {
           theme: 'custom',
-          sanitize: (value: any) => value
+          sanitize: (value: any) => value,
+          formatTooltip: (value: any) => {
+            const date = value['Date'] || '';
+            const val = value['Value'] || '';
+            return `
+              <span data-type="period">${date}</span>
+              <span data-type="actual-value">${val}</span>
+            `;
+          }
         }
       };
 
