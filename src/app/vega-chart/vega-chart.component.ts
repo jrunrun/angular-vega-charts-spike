@@ -43,7 +43,11 @@ export class VegaChartComponent implements AfterViewInit, OnDestroy {
       const defaultOptions: any = {
         renderer: 'svg',
         actions: false,
-        vega // Pass the vega instance where custom formatters are registered
+        vega, // Pass the vega instance where custom formatters are registered
+        tooltip: {
+          theme: 'custom',
+          sanitize: (value: any) => value
+        }
       };
 
       const mergedOptions: EmbedOptions = {
